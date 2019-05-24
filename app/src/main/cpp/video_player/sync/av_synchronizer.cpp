@@ -328,6 +328,9 @@ bool AVSynchronizer::isHWCodecAvaliable() {
 	JNIEnv *env = 0;
 	int status = 0;
 	bool needAttach = false;
+	// JNIEnv*在native线程（非java调用native函数的线程）是不存在的，要想获取，需要通过JM java虚拟机对象获取。
+	//一般是无法获取的，但是可以调用java虚拟机对象的 attachCurrentThread，就可以获取到 JNIENV* 了，从而具备
+	//访问java方法的能力。但是这种方式最后必须要调用 DetachCurrentThread，否则会发生异常。
 	status = g_jvm->GetEnv((void **) (&env), JNI_VERSION_1_4);
 	// don't know why, if detach directly, will crash
 	if (status < 0) {

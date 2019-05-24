@@ -46,7 +46,7 @@ bool VideoOutput::createEGLContext(ANativeWindow* window) {
 	if(!ret){
 		LOGI("create EGL Context failed...");
 		return false;
-	}00
+	}
 	this->createWindowSurface(window);
 	eglCore->doneCurrent();	// must do this before share context in Huawei p6, or will crash
 	return ret;
