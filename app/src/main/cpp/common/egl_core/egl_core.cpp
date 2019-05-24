@@ -56,6 +56,7 @@ EGLSurface EGLCore::createWindowSurface(ANativeWindow* _window) {
 		return surface;
 	}
 	ANativeWindow_setBuffersGeometry(_window, 0, 0, format);
+	//Surface实际上就是一个FrameBuffer，也就是渲染目的地
 	if (!(surface = eglCreateWindowSurface(display, config, _window, 0))) {
 		LOGE("eglCreateWindowSurface() returned error %d", eglGetError());
 	}
@@ -83,10 +84,19 @@ int EGLCore::querySurface(EGLSurface surface, int what) {
 }
 
 bool EGLCore::swapBuffers(EGLSurface eglSurface) {
+	//绘制FrameBuffer到界面
 	return eglSwapBuffers(display, eglSurface);
 }
 
 bool EGLCore::makeCurrent(EGLSurface eglSurface) {
+	/**
+     * 该接口将申请到的display，draw（surface）和 context进行了绑定。也就是说，
+     * 在context下的OpenGLAPI指令将draw（surface）作为其渲染最终目的地。
+     * 而display作为draw（surface）的前端显示。
+     * 调用后，当前线程使用的EGLContex为context。
+     * @param eglSurface
+     * @return
+     */
 	return eglMakeCurrent(display, eglSurface, eglSurface, context);
 }
 
@@ -113,18 +123,22 @@ bool EGLCore::init(EGLContext sharedContext) {
 	EGLint width;
 	EGLint height;
 
+	//FrameBuffer的属性，包括大小，ARGB占的字节数...
 	const EGLint attribs[] = { EGL_BUFFER_SIZE, 32, EGL_ALPHA_SIZE, 8, EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
 	EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_NONE };
 
+	//获取默认屏幕设备，一般厂商都会支持的
 	if ((display = eglGetDisplay(EGL_DEFAULT_DISPLAY)) == EGL_NO_DISPLAY) {
 		LOGE("eglGetDisplay() returned error %d", eglGetError());
 		return false;
 	}
+	//初始化屏幕设备，第二个是EGL major 版本，第三个是 minor版本，不关心的话，可以填0或者NULL
 	if (!eglInitialize(display, 0, 0)) {
 		LOGE("eglInitialize() returned error %d", eglGetError());
 		return false;
 	}
 
+	//选择EGL的设置，设置实际指的是FrameBuffer 的设置，FrameBuffer 就是最后用来显示的图片
 	if (!eglChooseConfig(display, attribs, &config, 1, &numConfigs)) {
 		LOGE("eglChooseConfig() returned error %d", eglGetError());
 		release();
@@ -132,6 +146,11 @@ bool EGLCore::init(EGLContext sharedContext) {
 	}
 
 	EGLint eglContextAttributes[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
+	/**
+	 * OpenGL ES的pipeline（即处理流程）从程序的角度看就是一个状态机，有当前的颜色、纹理坐标、变换矩阵、绚染模式等一大堆状态，
+	 * 这些状态作用于OpenGL API程序提交的顶点坐标等图元从而形成帧缓冲内的像素（FrameBuffer）。
+	 * 在OpenGL的编程接口中，Context就代表这个状态机，OpenGL API程序的主要工作就是向Context提供图元、设置状态，偶尔也从Context里获取一些信息。
+	 */
 	if (!(context = eglCreateContext(display, config, NULL == sharedContext ? EGL_NO_CONTEXT : sharedContext, eglContextAttributes))) {
 		LOGE("eglCreateContext() returned error %d", eglGetError());
 		release();
