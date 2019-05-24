@@ -214,7 +214,7 @@ int VideoDecoder::openInput() {
 //	LOGI("VideoDecoder::openInput");
 	char *videoSourceURI = requestHeader->getURI();
 	int* max_analyze_durations = requestHeader->getMaxAnalyzeDurations();
-	int analyzeDurationSize = requestHeader->getAnalyzeCnt();
+	int analyzeDurationSize = requestHeader->getAnalyzeCnt();2
 
 	int tryNum = (connectionRetry <= 0) ? 1 : connectionRetry;
 	LOGI("tryNum ===== %d", tryNum);
@@ -330,6 +330,8 @@ int VideoDecoder::openVideoStream(int streamIndex) {
 	//5、now: we think we can Correctly identify the video stream
 	this->videoStreamIndex = streamIndex;
 	//6、determine fps and videoTimeBase
+	//timebase就是帧与帧之间的刻度，如果帧率是25，timebase 是 1/25，而pts是何时显示该帧，它指的是处于视频中的第几个刻度
+	//那么我们可以通过 timebase * pts，就可以知道这个帧在视频中的具体位置了 -- 即播放时间。
 	avStreamFPSTimeBase(videoStream, 0.04, &fps, &videoTimeBase);
 	float* actualFps = (float*)requestHeader->get(DECODER_HEADER_FORCE_FPS);
 	if(NULL != actualFps){

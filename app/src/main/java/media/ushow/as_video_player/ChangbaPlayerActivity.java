@@ -56,7 +56,7 @@ public class ChangbaPlayerActivity extends Activity implements OnSeekBarChangeLi
 		findViewById(R.id.continue_btn).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				timer = new Timer();
+				/*timer = new Timer();
 				timerTask = new TimerTask() {
 					@Override
 					public void run() {
@@ -65,7 +65,7 @@ public class ChangbaPlayerActivity extends Activity implements OnSeekBarChangeLi
 						handler.sendEmptyMessage(UPDATE_PLAY_VIEDO_TIME_FLAG);
 					}
 				};
-				timer.schedule(timerTask, 500, 100);
+				timer.schedule(timerTask, 500, 100);*/
 
 				playerController.play();
 				timerStart();
