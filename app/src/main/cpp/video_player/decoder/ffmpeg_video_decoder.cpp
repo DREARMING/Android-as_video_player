@@ -19,9 +19,11 @@ TextureFrameUploader* FFMPEGVideoDecoder::createTextureFrameUploader() {
 
 float FFMPEGVideoDecoder::updateTexImage(TextureFrame* textureFrame) {
 	float position = -1;
+	//将AVFrame 封装成 VideoFrame，即将数据分开成YUV分量
 	VideoFrame *yuvFrame = handleVideoFrame();
 	if (yuvFrame) {
 		((YUVTextureFrame*) textureFrame)->setVideoFrame(yuvFrame);
+		//创建3个纹理对象，并且将 VideoFrame 的 YUV数据分别绑定到3个纹理对象中，方便后续离线渲染
 		textureFrame->updateTexImage();
 		position = yuvFrame->position;
 		delete yuvFrame;

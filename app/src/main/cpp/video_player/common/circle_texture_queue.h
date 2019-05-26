@@ -13,6 +13,9 @@
 typedef void(*onSignalFrameAvailableCallback)(void* ctx);
 
 typedef struct FrameTexture {
+	/*
+	 * 该纹理在 circleo_texture_queue中被创建和设置属性
+	 * */
 	GLuint texId;
 	float position;
 	int width;

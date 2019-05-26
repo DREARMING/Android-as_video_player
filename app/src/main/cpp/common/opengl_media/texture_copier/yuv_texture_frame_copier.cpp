@@ -51,6 +51,12 @@ void YUVTextureFrameCopier::renderWithCoords(TextureFrame* textureFrame, GLuint 
 	glEnableVertexAttribArray (mGLVertexCoords);
 	glVertexAttribPointer(mGLTextureCoords, 2, GL_FLOAT, GL_FALSE, 0, textureCoords);
 	glEnableVertexAttribArray (mGLTextureCoords);
+
+	/**
+	 * 绑定 片段着色器 中的三个 yuv 纹理坐标属性，先找出属性的location，然后再绑定到具体的 texture上，如TEXTURE0绑定了Y分量
+	 * 这里没有纹理图片数据的填充，因为再调用该方法之前，就已经绑定了，参考 yuv_texture_frame->updateTexImage
+	 *
+	 */
 	/* Binding the input texture */
 	textureFrame->bindTexture(_uniformSamplers);
 

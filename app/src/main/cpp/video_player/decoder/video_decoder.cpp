@@ -71,6 +71,7 @@ int VideoDecoder::openFile(DecoderRequestHeader *requestHeader) {
 		buriedPoint.duration = 0.0f;
 	}
 	long long startTimeMills = currentTimeMills();
+	//打开文件读取视频信息
 	int errorCode = openInput();
 //	LOGI("openInput [%s] waste TimeMills is %d", requestHeader->getURI(), (int )(currentTimeMills() - startTimeMills));
 	//现在 pFormatCtx->streams 中已经有所有流了，因此现在我们遍历它找出对应的视频流、音频流、字幕流等：
@@ -109,6 +110,9 @@ int VideoDecoder::openFile(DecoderRequestHeader *requestHeader) {
 
 void VideoDecoder::startUploader(UploaderCallback * pUploaderCallback) {
 	mUploaderCallback = pUploaderCallback;
+	//由具体的解码器 -- 软件解码器 ffmpeg_video_decoder 或者硬件解码器 mediacodec_video_decoder去创建具体的FrameUploader
+	//前者是 yuv_texture_frame_uploader
+	//硬件解码器是 gpu_texture_frame_uploader
 	textureFrameUploader = createTextureFrameUploader();
 	textureFrameUploader->registerUpdateTexImageCallback(update_tex_image_callback, signal_decode_thread_callback, this);
 	textureFrameUploader->setUploaderCallback(pUploaderCallback);
@@ -198,6 +202,7 @@ bool VideoDecoder::hasAllCodecParameters(){
 
 	for (int i = 0; i < pFormatCtx->nb_streams; i++) {
 		AVStream* st = pFormatCtx->streams[i];
+		//校验流信息是否具备应该具有的参数
 		if (!has_codec_parameters(st)) {
 			return false;
 		}
@@ -214,7 +219,7 @@ int VideoDecoder::openInput() {
 //	LOGI("VideoDecoder::openInput");
 	char *videoSourceURI = requestHeader->getURI();
 	int* max_analyze_durations = requestHeader->getMaxAnalyzeDurations();
-	int analyzeDurationSize = requestHeader->getAnalyzeCnt();2
+	int analyzeDurationSize = requestHeader->getAnalyzeCnt();
 
 	int tryNum = (connectionRetry <= 0) ? 1 : connectionRetry;
 	LOGI("tryNum ===== %d", tryNum);
@@ -229,11 +234,14 @@ int VideoDecoder::openInput() {
 
 	readLatestFrameTimemills = currentTimeMills();
 	isTimeout = false;
+	//获取 ffmpeg 的容器上下文
 	pFormatCtx = avformat_alloc_context();
 	int_cb = {VideoDecoder::interrupt_cb, this};
+	//设置回调函数，用于超时处理
 	pFormatCtx->interrupt_callback = int_cb;
 	//打开一个文件 只是读文件头，并不会填充流信息 需要注意的是，此处的pFormatContext必须为NULL或由avformat_alloc_context分配得到
 	int openInputErrCode = 0;
+	//开始读取文件信息，信息将会封装在 pFormatCtx 中
 	if ((openInputErrCode = this->openFormatInput(videoSourceURI)) != 0) {
 		LOGI("Video decoder open input file failed... videoSourceURI is %s openInputErr is %s", videoSourceURI, av_err2str(openInputErrCode));
 		return -1;

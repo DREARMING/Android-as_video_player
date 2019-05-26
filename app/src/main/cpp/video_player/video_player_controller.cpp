@@ -179,6 +179,10 @@ bool VideoPlayerController::init(char *srcFilenameParam, JavaVM *g_jvm, jobject 
     this->minBufferedDuration = minBufferedDuration;
     this->maxBufferedDuration = maxBufferedDuration;
 
+    /**
+     * 开启了线程去执行 AVSynchronizer 的初始化，然后线程中调用本类的 startAVSynchronizer 函数，
+     * 初始化完之后，线程就结束了
+     */
     pthread_create(&initThreadThreadId, 0, initThreadCallback, this);
 
     userCancelled = false;

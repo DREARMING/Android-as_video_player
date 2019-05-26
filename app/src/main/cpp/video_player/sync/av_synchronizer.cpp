@@ -33,6 +33,7 @@ void UploaderCallbackImpl::initFromUploaderGLContext(EGLCore* eglCore) {
 		int videoFrameHeight = mParent->getVideoFrameHeight();
 
 		EGLContext eglContext = mParent->getUploaderEGLContext();
+		//初始化 video_gl_surface_render 和 circle_texture_queue
 		mParent->OnInitFromUploaderGLContext(eglCore, videoFrameWidth, videoFrameHeight);
 	}
 }
@@ -43,9 +44,17 @@ void UploaderCallbackImpl::destroyFromUploaderGLContext() {
 	}
 }
 
+/**
+ * 该方法在 texture_frame_uploader 创建完成之后，进行调用 - 所在线程是 texture_frame_uploader 自己创建的事件循环线程
+ * @param eglCore
+ * @param videoFrameWidth
+ * @param videoFrameHeight
+ */
 void AVSynchronizer::OnInitFromUploaderGLContext(EGLCore* eglCore, int videoFrameWidth, int videoFrameHeight) {
 	if (NULL == passThorughRender) {
+		// VideoGLSurfaceRender 是一个渲染 纹理图片到 设备屏幕上的类
 		passThorughRender = new VideoGLSurfaceRender();
+		//初始化，创建渲染程序，并且记录顶点属性、纹理坐标属性的位置
 		bool isGLViewInitialized = passThorughRender->init(videoFrameWidth,videoFrameHeight);
 		if (!isGLViewInitialized) {
 			LOGI("GL View failed on initialized...");
@@ -229,7 +238,7 @@ bool AVSynchronizer::init(DecoderRequestHeader *requestHeader, JavaVM *g_jvm, jo
 	this->createDecoderInstance();
 	//2、初始化成员变量
 	this->initMeta();
-	//3、打开流并且解析出来音视频流的Context
+	//3、打开流并且解析出来音视频流的Context，并且校验流的参数的合法性，里面也会做失败重连
 	int initCode = decoder->openFile(requestHeader);
 	if (initCode < 0 || isDestroyed) {
 		LOGI("VideoDecoder decode file fail...");
@@ -499,6 +508,7 @@ void AVSynchronizer::initDecoderThread() {
 	pthread_mutex_init(&videoDecoderLock, NULL);
 	pthread_cond_init(&videoDecoderCondition, NULL);
 	isInitializeDecodeThread = true;
+	//开启解码线程
 	pthread_create(&videoDecoderThread, NULL, startDecoderThread, this);
 }
 
@@ -631,12 +641,15 @@ void AVSynchronizer::renderToVideoQueue(GLuint inputTexId, int width, int height
 
 	//注意:先做上边一步的原因是 担心videoEffectProcessor处理速度比较慢 这样子就把circleQueue锁住太长时间了
 	bool isFirstFrame = circleFrameTextureQueue->getIsFirstFrame();
+	//获取 pushCoursor 的 TextureFrame
 	FrameTexture* frameTexture = circleFrameTextureQueue->lockPushCursorFrameTexture();
 	if (NULL != frameTexture) {
 		frameTexture->position = position;
 //		LOGI("Render To TextureQueue texture Position is %.3f ", position);
 		//cpy input texId to target texId
+		//复制解码线程处理过的输出纹理对象到 这个 TextureFrame 的纹理中,多了一重拷贝？？
 		passThorughRender->renderToTexture(inputTexId, frameTexture->texId);
+		//pushCursor指向下一个 TextureFrame
 		circleFrameTextureQueue->unLockPushCursorFrameTexture();
 
 
@@ -715,6 +728,9 @@ void AVSynchronizer::clearCircleFrameTextureQueue() {
 	circleFrameTextureQueue->clear();
 }
 
+/**
+ * @return 获取的是 texture_frame_uploader 的 EGLContext, 该上下文绑定一个离线渲染的 FrameBuffer
+ */
 EGLContext AVSynchronizer::getUploaderEGLContext() {
 	if(decoder){
 		return decoder->getTextureFrameUploaderEGLContext();

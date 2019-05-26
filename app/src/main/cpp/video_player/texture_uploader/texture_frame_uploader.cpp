@@ -114,7 +114,8 @@ bool TextureFrameUploader::initialize() {
 	LOGI("TextureFrameUploader use sharecontext");
 	eglCore->initWithSharedContext();
 	LOGI("after TextureFrameUploader use sharecontext");
-
+	//创建离线FrameBuffer 的 surface，将绘制操作写进 outputTexId 的纹理对象中，而非渲染到屏幕上，用于将 YUV 帧数据
+	//转换成 ARGB 纹理 -- 所以这里起了复制的名字
 	copyTexSurface = eglCore->createOffscreenSurface(videoWidth, videoHeight);
 	eglCore->makeCurrent(copyTexSurface);
 	glGenFramebuffers(1, &mFBO);
@@ -129,6 +130,7 @@ bool TextureFrameUploader::initialize() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	if (mUploaderCallback){
+		//初始化 video_gl_surface_render 和 circle_texture_queue
 		mUploaderCallback->initFromUploaderGLContext(eglCore);
 	}
 
@@ -174,9 +176,17 @@ float TextureFrameUploader::updateTexImage() {
 }
 
 void TextureFrameUploader::drawFrame() {
+	//调用具体的 decoder的 updateTexImage 函数，填充 textureFrame 的数据，position，并且创建绑定了3个YUV分量的纹理对象
 	float position = this->updateTexImage();
+	//当前上下文对象 EGLContext 绘制都是针对离线 FrameBuffer的，而该buffer主要用于将绘制操作写进一个纹理对象中
+	//而不是屏幕中，后续就可以利用该纹理对象做其他操作了。
+	//纹理对象的id就是 outputTexId, 为什么用一个离线FrameBuffer呢？这里用于将 YUV 的帧数据，转化成 RGB 纹理，因为
+	//屏幕的绘制就是需要 ARGB的纹理。
+	//这里为什么需要这么做，而不直接再渲染的时候将 YUV 分量的纹理渲染到屏幕的原因大概是 YUV分量计算比较耗时，
+	//在后台线程做了，可以加快渲染速度。也有可能，屏幕渲染的 FrameBuffer 不一定支持 YUV分量的纹理
 	glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
 	/** 将YUV数据(软件解码), samplerExternalOES格式的TexId(硬件解码) 拷贝到GL_RGBA格式的纹理ID上 **/
+	//outputTexId就是要 FrameBuffer 绘制的目标 -- 输出纹理对象id
 	textureFrameCopier->renderWithCoords(textureFrame, outputTexId, vertexCoords, textureCoords);
 	if (mUploaderCallback)
 		mUploaderCallback->processVideoFrame(outputTexId, videoWidth, videoHeight, position);

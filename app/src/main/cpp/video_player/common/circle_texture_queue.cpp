@@ -26,6 +26,7 @@ void CircleFrameTextureQueue::init(int width, int height, int queueSizeParam){
 	int i = queueSize - 1;
 	FrameTextureNode* nextCursor = tail;
 	FrameTextureNode* curCursor = NULL;
+	//初始化所有 FrameTextureNode
 	while (i > 0) {
 		curCursor = new FrameTextureNode();
 		curCursor->texture = buildFrameTexture(width, height, INVALID_FRAME_POSITION);
