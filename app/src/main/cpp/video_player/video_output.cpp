@@ -131,6 +131,7 @@ bool VideoOutput::renderVideo() {
 //		LOGI("VideoOutput::renderVideo() ");
 		//这里绑定的 surface 并非离线的，所以将会渲染到屏幕上
 		eglCore->makeCurrent(renderTexSurface);
+		//渲染到屏幕
 		renderer->renderToViewWithAutoFill(texture->texId, screenWidth, screenHeight, texture->width, texture->height);
 		if (!eglCore->swapBuffers(renderTexSurface)) {
 			LOGE("eglSwapBuffers(renderTexSurface) returned error %d", eglGetError());

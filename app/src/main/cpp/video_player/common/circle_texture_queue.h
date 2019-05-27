@@ -14,9 +14,14 @@ typedef void(*onSignalFrameAvailableCallback)(void* ctx);
 
 typedef struct FrameTexture {
 	/*
-	 * 该纹理在 circleo_texture_queue中被创建和设置属性
+	 * 该纹理在 circle_texture_queue中被创建和设置属性
+	 *
+	 * 是解码之后的画面输出到的RGB纹理id，用于直接渲染
 	 * */
 	GLuint texId;
+	/**
+	 * 该帧所在的位置
+	 */
 	float position;
 	int width;
 	int height;
