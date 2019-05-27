@@ -165,6 +165,10 @@ protected:
 	CircleFrameTextureQueue* circleFrameTextureQueue;
 	/** 这里是为了将audioFrame中的数据，缓冲到播放音频的buffer中，有可能需要积攒几个frame，所以记录位置以及保存当前frame **/
 	AudioFrame* currentAudioFrame;
+	/*
+	 * 用于保存 currentAudioFrame 中剩余的音频数据所在的指针位置，因为填满buffer之后，会残留剩余的，
+	 * 在下一次为opensl填充音频数据时，再把剩下的数据拷贝到buffer中
+	 * */
 	int currentAudioFramePos;
 	/** 当前movie的position，用于同步音画 **/
 	double moviePosition;

@@ -876,6 +876,7 @@ AudioFrame * VideoDecoder::handleAudioFrame() {
 	int numChannels = audioCodecCtx->channels;
 	int numFrames = 0;
 	void * audioData;
+	//当打开流时，会检测音频流是否是 PCM_16的，如果是，则是正常的，否则需要进行重采样处理，如果重采样的话，swrContext 就不会空
 	if (swrContext) {
 //		LOGI("start resample audio...");
 		const int ratio = 2;

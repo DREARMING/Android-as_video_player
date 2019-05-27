@@ -123,9 +123,13 @@ void VideoOutput::signalFrameAvailable() {
 }
 bool VideoOutput::renderVideo() {
 	FrameTexture* texture = NULL;
+	//去视频帧队列里面获取 FrameTexture，里面会判断时间，如果视频的速度大于音频，则播放返回nul，这样子就不会渲染新的帧画面
+	//如果视频的速度慢于音频，则会做跳帧处理
+	//对于forceGetFrame的理解是第一帧渲染才会需要，当获取画面成功后，可能就一直为false，专注于控制视频的时间。为true时候，队列有数据就会立刻返回，不会控制时间
 	produceDataCallback(&texture, ctx, forceGetFrame);
 	if (NULL != texture && NULL != renderer) {
 //		LOGI("VideoOutput::renderVideo() ");
+		//这里绑定的 surface 并非离线的，所以将会渲染到屏幕上
 		eglCore->makeCurrent(renderTexSurface);
 		renderer->renderToViewWithAutoFill(texture->texId, screenWidth, screenHeight, texture->width, texture->height);
 		if (!eglCore->swapBuffers(renderTexSurface)) {

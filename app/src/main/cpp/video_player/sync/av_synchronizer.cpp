@@ -141,7 +141,9 @@ FrameTexture* AVSynchronizer::getFirstRenderTexture() {
 int AVSynchronizer::fillAudioData(byte* outData, int bufferSize) {
 //	LOGI("enter AVSynchronizer::fillAudioData... buffered is %d", buffered);
 	this->signalDecodeThread();
+    //用于检查播放状态，还有根据当前解码的帧数量决定是否显示loading dialog
 	this->checkPlayState();
+	//检查是否在缓冲状态，如果是的话，让音频数据全部为0，静音。这样子，opensl 就会播放又调用该函数
 	if(buffered) {
 //		LOGI("fillAudioData if(buffered) circleFrameTextureQueue->getValidSize() %d", circleFrameTextureQueue->getValidSize());
 		memset(outData, 0, bufferSize);
@@ -180,6 +182,7 @@ int AVSynchronizer::fillAudioData(byte* outData, int bufferSize) {
 			memcpy(outData, bytes, bytesCopy);
 			bufferSize -= bytesCopy;
 			outData += bytesCopy;
+			//如果有剩余的话，即音频帧数据大于buffer需要的数据，延迟到下一次再把剩下的数据给buffer，这里直接跳出循环。
 			if (bytesCopy < bytesLeft)
 				currentAudioFramePos += bytesCopy;
 			else {
@@ -492,6 +495,7 @@ void AVSynchronizer::decodeFrames() {
 	while (good) {
 		good = false;
 		if (canDecode()) {
+		    //good标志用于是否继续解码，当 duration 大于 maxBufferDuration时就不需要继续解码
 			processDecodingFrame(good, duration);
 		} else {
 			break;
