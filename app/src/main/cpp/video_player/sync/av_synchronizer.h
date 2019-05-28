@@ -156,6 +156,7 @@ protected:
 	jobject obj;
 	//表示客户端界面上是否显示loading progressbar
 	bool isLoading;
+	/* 默认是 0.05秒 */
 	float syncMaxTimeDiff;
 	float minBufferedDuration;//缓冲区的最短时长
 	float maxBufferedDuration;//缓冲区的最长时长
@@ -170,7 +171,7 @@ protected:
 	 * 在下一次为opensl填充音频数据时，再把剩下的数据拷贝到buffer中
 	 * */
 	int currentAudioFramePos;
-	/** 当前movie的position，用于同步音画 **/
+	/** 当前movie的position，用于同步音画，每一次音频数据填充到音频播放器的队列时，就会设置当前moviePosition到最新的音频帧的position **/
 	double moviePosition;
 	/** 根据缓冲区来控制是否需要编解码的变量 **/
 	float bufferedDuration;//当前缓冲区时长

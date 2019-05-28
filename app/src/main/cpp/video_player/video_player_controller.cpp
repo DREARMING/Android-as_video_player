@@ -253,6 +253,12 @@ void VideoPlayerController::resetRenderSize(int left, int top, int width, int he
     }
 }
 
+/**
+ * 该函数由 audio_output 不断调用获取数据
+ * @param outData  音频数据的 buffer 指针
+ * @param bufferSize buffer的大小
+ * @return 实际放在 outData 的数据大小
+ */
 int VideoPlayerController::consumeAudioFrames(byte* outData, size_t bufferSize) {
     int ret = bufferSize;
     if(this->isPlaying &&
@@ -260,8 +266,10 @@ int VideoPlayerController::consumeAudioFrames(byte* outData, size_t bufferSize) 
 //      LOGI("Before synchronizer fillAudioData...");
         ret = synchronizer->fillAudioData(outData, bufferSize);
 //      LOGI("After synchronizer fillAudioData... ");
+        //通知渲染视频帧
         signalOutputFrameAvailable();
     } else {
+        //如果状态不对，设置静音播放，把数据填0 即可
         LOGI("VideoPlayerController::consumeAudioFrames set 0");
         memset(outData, 0, bufferSize);
     }

@@ -26,6 +26,7 @@ JNIEXPORT jboolean JNICALL Java_com_changba_songstudio_video_player_ChangbaPlaye
 	jint* max_analyze_duration_params = env->GetIntArrayElements(max_analyze_duration, 0);
 	jboolean initCode = videoPlayerController->init(videoMergeFilePath, g_jvm, g_obj, max_analyze_duration_params,
 			size, probesize, fpsProbeSizeConfigured, minBufferedDuration, maxBufferedDuration);
+	//初始化 videoOutput
 	videoPlayerController->onSurfaceCreated(window, width, height);
 	env->ReleaseIntArrayElements(max_analyze_duration, max_analyze_duration_params, 0);
 	env->ReleaseStringUTFChars(videoMergeFilePathParam, videoMergeFilePath);

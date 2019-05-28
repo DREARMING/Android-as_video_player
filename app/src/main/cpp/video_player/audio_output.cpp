@@ -10,6 +10,9 @@ AudioOutput::~AudioOutput() {
 
 SLresult AudioOutput::registerPlayerCallback() {
 	// Register the player callback
+	//这里非常有意思的是，当 audioPlayerBufferQueue 可以接受音频数据的时候 ,就会收到 playCallback 的回调
+	//所以音频播放器就可以不断通过该回调，客户端收到回调就 enqueue 数据到bufferQueue中，就可以实现不断播放了
+	//如果是暂停的话，这里就停止回调，直到恢复，从而控制音频的播放，因为解码依赖于音频，所以视频画面也会被停止
 	return (*audioPlayerBufferQueue)->RegisterCallback(audioPlayerBufferQueue, playerCallback, this); // player context
 }
 
@@ -20,6 +23,7 @@ void AudioOutput::playerCallback(SLAndroidSimpleBufferQueueItf bq, void *context
 void AudioOutput::producePacket() {
 	//回调playerController中的方法来获得buffer
 	if (playingState == PLAYING_STATE_PLAYING) {
+		//去音频数据队列里面检查数据，数据不够就继续解码
 		int actualSize = produceDataCallback(buffer, bufferSize, ctx);
 		if (actualSize > 0 && playingState == PLAYING_STATE_PLAYING) {
 			//将提供的数据加入到播放的buffer中去

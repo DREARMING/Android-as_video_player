@@ -109,6 +109,10 @@ FrameTexture* AVSynchronizer::getCorrectRenderTexture(bool forceGetFrame) {
 			if (forceGetFrame) {
 				return texture;
 			}
+			//一般来说，音频总是比视频快的，所以 delta 一般 > 0。
+			//如果发生是负数，并且大于 syncMaxTimeDiff 个时间，就说明视频比音频还快，播放上一帧画面即可，texture == null，代表不渲染，即可以播放上一帧
+			//负数的情况一般发生在音频队列已经没有数据了，需要静音播放了，但是视频队列还有数据，这个时候视频还会继续刷新，直至视频数据也为空才会停止，这个时候就有可能发生
+			//是负数的情况，毕竟解码的时候是根据 音频来解码的，对于视频是在解码过程中不断添加到 视频队列中的，就是说很大可能视频队列的画面帧数多于 音频帧数，但是也不会多大多。
 			const float delta = (moviePosition - DEFAULT_AUDIO_BUFFER_DURATION_IN_SECS) - texture->position;
 			if (delta < (0 - syncMaxTimeDiff)) {
 				//视频比音频快了好多,我们还是渲染上一帧
@@ -117,6 +121,7 @@ FrameTexture* AVSynchronizer::getCorrectRenderTexture(bool forceGetFrame) {
 				break;
 			}
 			circleFrameTextureQueue->pop();
+			//音频比视频快，超过阈值，就拿取下一帧，即发生跳帧处理
 			if (delta > syncMaxTimeDiff) {
 				//视频比音频慢了好多,我们需要继续从queue拿到合适的帧
 //				LOGI("视频比音频慢了好多,我们需要继续从queue拿到合适的帧 moviePosition is %.4f texture->position is %.4f", moviePosition, texture->position);
@@ -140,8 +145,9 @@ FrameTexture* AVSynchronizer::getFirstRenderTexture() {
 
 int AVSynchronizer::fillAudioData(byte* outData, int bufferSize) {
 //	LOGI("enter AVSynchronizer::fillAudioData... buffered is %d", buffered);
+    //唤醒解码线程，继续解析音视频数据
 	this->signalDecodeThread();
-    //用于检查播放状态，还有根据当前解码的帧数量决定是否显示loading dialog
+    //用于检查播放状态，还有根据当前解码的帧数量决定是否显示loading dialog == 视频帧或者音频帧耗尽就需要load
 	this->checkPlayState();
 	//检查是否在缓冲状态，如果是的话，让音频数据全部为0，静音。这样子，opensl 就会播放又调用该函数
 	if(buffered) {
@@ -150,6 +156,7 @@ int AVSynchronizer::fillAudioData(byte* outData, int bufferSize) {
 		return bufferSize;
 	}
 	int needBufferSize = bufferSize;
+	//从音频队列里面获取 bufferSize 个字节，并把数据填充到 outData 指针指向的地方
 	while (bufferSize > 0) {
 		if (NULL == currentAudioFrame) {
 			pthread_mutex_lock(&audioFrameQueueMutex);
@@ -190,6 +197,7 @@ int AVSynchronizer::fillAudioData(byte* outData, int bufferSize) {
 				currentAudioFrame = NULL;
 			}
 		} else {
+		    //如果没有足够的音频数据，就需要填充静音了，等待下一次获取时，显示dialog。
 			LOGI("fillAudioData NULL == currentAudioFrame");
 			memset(outData, 0, bufferSize);
 			bufferSize = 0;
@@ -407,6 +415,7 @@ bool AVSynchronizer::addFrames(float thresholdDuration, std::list<MovieFrame*>* 
 		pthread_mutex_unlock(&audioFrameQueueMutex);
 	}
 //	LOGI("bufferDuration is %.3f thresholdDuration is %.3f buffered is %d", bufferedDuration, thresholdDuration, buffered);
+    //当 缓冲的音频帧数据时长或者 视频帧画面大于 最大缓冲时长后，就返回 notgood，代表不需要继续解码了
 	bool isBufferedDurationIncreasedToThreshold = (bufferedDuration >= thresholdDuration) &&
 			(circleFrameTextureQueue->getValidSize()  >= thresholdDuration * getVideoFPS());
 	return  !isBufferedDurationIncreasedToThreshold;
@@ -453,6 +462,7 @@ void AVSynchronizer::pauseDecodeThread(){
 }
 
 void AVSynchronizer::processDecodingFrame(bool& good, float duration){
+    //每一次解析都去解码器中解析最小 duration 长度的音频帧
 	std::list<MovieFrame*>* frames = decoder->decodeFrames(duration,&decodeVideoErrorState);
 	if (NULL != frames) {
 		if (!frames->empty()) {
@@ -478,6 +488,8 @@ void AVSynchronizer::processDecodingFrame(bool& good, float duration){
 					}
 				}
 			} else {
+			    //将音频数据添加到音频队列中，再把duration计算一下，判断是否超出或等于 maxBufferDuration ，如果是的话，停止解码，good返回false
+			    //否则返回false，因为processDecodingFrame是在循环里面的，通过 good 来控制是否继续解码
 				good = addFrames(frames);
 			}
 		} else {
@@ -522,7 +534,9 @@ void AVSynchronizer::signalDecodeThread() {
 		return;
 	}
 
-	//如果没有剩余的帧了或者当前缓存的长度大于我们的最小缓冲区长度的时候，就再一次开始解码
+	//如果当前音频缓存的长度小于我们的最小缓冲长度 minBufferDuration 的时候 或者 视频队列的缓存的帧数 小于或等于 最小缓存帧数时
+	// 又或者当前发生了 seek 操作
+	// 如果当前没有在解码中，就再一次开始解码
 	bool isBufferedDurationDecreasedToMin = bufferedDuration <= minBufferedDuration ||
 			(circleFrameTextureQueue->getValidSize() <= minBufferedDuration*getVideoFPS());
 
@@ -538,7 +552,7 @@ bool AVSynchronizer::checkPlayState() {
 		LOGI("NULL == decoder || NULL == circleFrameTextureQueue || NULL == audioFrameQueue");
 		return false;
 	}
-	//判断是否是视频解码错误
+	//判断是否是视频解码发生错误，错误通过jni 给 java 层抛出异常
 	if (1 == decodeVideoErrorState) {
 		decodeVideoErrorState = 0;
 		this->videoDecodeException();
@@ -553,9 +567,11 @@ bool AVSynchronizer::checkPlayState() {
 
 	this->useForstatistic(leftVideoFrames);
 
+	//剩余的音频帧==0，或者视频帧 == 1时，就调用 java 层，显示dialog
 	if (leftVideoFrames == 1 || leftAudioFrames == 0) {
 //		LOGI("Setting Buffered is True : leftAudioFrames is %d, leftVideoFrames is %d, bufferedDuration is %f",
 //				leftAudioFrames, leftVideoFrames, bufferedDuration);
+        //设置缓冲状态为true
 		buffered = true;
 		if (!isLoading) {
 			isLoading = true;
@@ -652,6 +668,8 @@ void AVSynchronizer::renderToVideoQueue(GLuint inputTexId, int width, int height
 //		LOGI("Render To TextureQueue texture Position is %.3f ", position);
 		//cpy input texId to target texId
 		//复制解码线程处理过的输出纹理对象到 这个 TextureFrame 的纹理中,多了一重拷贝？？
+		//这里指定了viewport，做多了一个视频帧大小的处理
+		//注意一下，所有inputTexId 都是同一个值的，这里就是为什么还需要拷贝的原因，因为 inputTexId保存的纹理在一下次就会切换成下一帧的纹理（可以考虑在源头处理，生成不同的纹理id）
 		passThorughRender->renderToTexture(inputTexId, frameTexture->texId);
 		//pushCursor指向下一个 TextureFrame
 		circleFrameTextureQueue->unLockPushCursorFrameTexture();
