@@ -25,12 +25,12 @@ include_directories(BEFORE ${PATH_TO_THIRDPARTY}/ffmpeg/include/)
 include_directories(${PATH_TO_NATIVE}/)
 include_directories(${PATH_TO_NATIVE}/common/)
 include_directories(${PATH_TO_NATIVE}/video_player/)
+include_directories(src/main/jni/)
+
 
 file(GLOB FILES_JNI_LAYER "${PATH_TO_JNI_LAYER}/*.cpp")
 
-add_library(native-lib SHARED
-        ${FILES_JNI_LAYER}
-        )
+add_library(native-lib SHARED ${FILES_JNI_LAYER})
 
 target_link_libraries(native-lib
                        # 引入系统的动态库

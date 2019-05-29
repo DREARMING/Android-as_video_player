@@ -23,7 +23,8 @@ android {
 
         externalNativeBuild {
             cmake {
-                cppFlags ""
+                cppFlags '-O3', '-fexceptions', '-fsigned-char',
+                        "-frtti -std=c++11", '-Wformat'
             }
         }
     }

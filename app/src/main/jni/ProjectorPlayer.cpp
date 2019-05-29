@@ -1,24 +1,21 @@
-#include <jni.h>
-#include <string>
+//
+// Created by mvcoder on 2019/5/29.
+//
+
+#include "com_changba_songstudio_video_player_ProjectorPlayer.h"
 
 extern "C" {
-JNIEXPORT jstring JNICALL Java_media_ushow_as_1video_1player_MainActivity_stringFromJNI(
-        JNIEnv *env,
-        jobject /* this */) {
-    std::string hello = "Hello From VideoPlayer >>>";
-    return env->NewStringUTF(hello.c_str());
-}
 
-/*
+
 JNIEXPORT void  JNICALL
 Java_com_changba_songstudio_video_player_ProjectorPlayer_onSurfaceCreated(JNIEnv *env, jobject obj,
-                                                                          jobject surface) {
+        jobject surface) {
 
 }
 
 
 JNIEXPORT void  JNICALL Java_com_changba_songstudio_video_player_ProjectorPlayer_onSurfaceDestroyed(JNIEnv *, jobject,
-                                                                                 jobject) {
+jobject) {
 
 }
 
@@ -39,7 +36,6 @@ JNIEXPORT void  JNICALL Java_com_changba_songstudio_video_player_ProjectorPlayer
 
 JNIEXPORT void  JNICALL Java_com_changba_songstudio_video_player_ProjectorPlayer_stop(JNIEnv *, jobject) {
 
-}*/
-
+}
 
 }

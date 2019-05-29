@@ -111,6 +111,3 @@ JNIEXPORT void JNICALL Java_com_changba_songstudio_video_player_ChangbaPlayer_af
 //		videoPlayerController->afterSeekCurrent();
 	}
 }
-
-
-
