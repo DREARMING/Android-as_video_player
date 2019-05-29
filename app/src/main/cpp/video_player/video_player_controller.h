@@ -11,12 +11,28 @@
 #include "opengl_media/render/video_gl_surface_render.h"
 #include "./video_output.h"
 #include "egl_core/egl_share_context.h"
+#include <map>
+#include <string>
+
+enum VideoState {
+	UNINIT, START,PAUSE,STOP,DESTROY
+};
+
+typedef struct {
+	char* url;
+	VideoOutput* videoOutput;
+	AudioOutput* audioOutput;
+	VideoState state;
+
+}SameSourcePlayer;
 
 /**
  * Video Player Controller
  */
 class VideoPlayerController {
 public:
+	static map<string, SameSourcePlayer*> same_source_player_map;	//用来存储非同源 player
+	bool isConsumerPlayer; //标识自己是否是消费者
 	VideoPlayerController();
 	virtual ~VideoPlayerController();
 
@@ -71,6 +87,15 @@ public:
 
 	void signalOutputFrameAvailable();
 
+    virtual int getAudioChannels();
+
+    int getAudioSampleRate(){
+        if(synchronizer){
+            return synchronizer->getAudioSampleRate();
+        }
+        return -1;
+    };
+
 	EGLContext getUploaderEGLContext();
 
 protected:
@@ -98,14 +123,6 @@ protected:
 	VideoOutput* videoOutput;
 	AudioOutput* audioOutput;
 	bool initAudioOutput();
-	virtual int getAudioChannels();
-
-	int getAudioSampleRate(){
-		if(synchronizer){
-			return synchronizer->getAudioSampleRate();
-		}
-		return -1;
-	};
 
 	virtual bool initAVSynchronizer();
 

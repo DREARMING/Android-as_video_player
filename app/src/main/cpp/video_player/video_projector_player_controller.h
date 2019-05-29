@@ -46,6 +46,11 @@ private:
     int screenWidth;
     int screenHeight;
     char* videoPath;
+    bool userCancel;
+    ANativeWindow* window;
+    ProjectorCallbackImpl* projectorCallback;
+    void initVideoOutput(ANativeWindow* window);
+    void initAudioOutput();
 };
 
 #endif //ANDROID_AS_VIDEO_PLAYER1_VIDEO_PROJECTOR_PLAYER_CONTROLLER_H
