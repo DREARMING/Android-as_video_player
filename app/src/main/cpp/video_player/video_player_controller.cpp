@@ -385,7 +385,7 @@ bool VideoPlayerController::registerProjectorCallback(ProjectorCallbackImpl *cal
     pthread_mutex_lock(&callbackLock);
     projectorCallbackList.push_back(callback);
     if(projectorCallbackList.size() == 1){
-        videoOutput->setRenderTexCallback(VideoPlayerController::renderTexToProjector);
+        videoOutput->setRenderTexCallback(this->renderTexToProjector);
     }
     pthread_mutex_unlock(&callbackLock);
     LOGI("register videoPlayerController");
@@ -422,10 +422,9 @@ void VideoPlayerController::destroyProjectorState() {
     //移除 url
     string key = requestHeader->getURI();
     urlMap.erase(key);
-    LOGI("remove url : %s", key);
+    LOGI("remove url : %s", key.c_str());
     //清空所有回调
     projectorCallbackList.clear();
-    projectorCallbackList = NULL;
     //销毁锁
     pthread_mutex_destroy(&callbackLock);
 }

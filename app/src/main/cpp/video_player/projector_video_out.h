@@ -9,6 +9,16 @@
 #include "common/egl_core/egl_core.h"
 #include "common/opengl_media/render/video_gl_surface_render.h"
 #include "video_output.h"
+
+/*typedef enum {
+    VIDEO_OUTPUT_MESSAGE_CREATE_EGL_CONTEXT,
+    VIDEO_OUTPUT_MESSAGE_CREATE_WINDOW_SURFACE,
+    VIDEO_OUTPUT_MESSAGE_DESTROY_WINDOW_SURFACE,
+    VIDEO_OUTPUT_MESSAGE_DESTROY_EGL_CONTEXT,
+    VIDEO_OUTPUT_MESSAGE_RENDER_FRAME
+} VideoOutputMSGType;*/
+
+
 class ProjectorVideoOuputHandler;
 
 class ProjectorVideoOutput {
@@ -29,7 +39,7 @@ public:
 
     bool createEGLContext(ANativeWindow* window);
     void createWindowSurface(ANativeWindow* window);
-    bool renderVideo();
+    bool renderVideo(FrameTexture* frameTexture);
     void destroyWindowSurface();
     void destroyEGLContext();
 
@@ -64,6 +74,13 @@ class ProjectorVideoOuputHandler: public Handler {
 private:
     ProjectorVideoOutput* videoOutput;
     bool initPlayerResourceFlag;
+    typedef enum {
+        VIDEO_OUTPUT_MESSAGE_CREATE_EGL_CONTEXT,
+        VIDEO_OUTPUT_MESSAGE_CREATE_WINDOW_SURFACE,
+        VIDEO_OUTPUT_MESSAGE_DESTROY_WINDOW_SURFACE,
+        VIDEO_OUTPUT_MESSAGE_DESTROY_EGL_CONTEXT,
+        VIDEO_OUTPUT_MESSAGE_RENDER_FRAME
+    } VideoOutputMSGType;
 
 public:
     ProjectorVideoOuputHandler(ProjectorVideoOutput* videoOutput, MessageQueue* queue) :
@@ -89,7 +106,7 @@ public:
                 }
 
                 if(initPlayerResourceFlag){
-                    videoOutput->renderVideo();
+                    videoOutput->renderVideo(static_cast<FrameTexture *>(msg->getObj()));
                 }
                 break;
             case VIDEO_OUTPUT_MESSAGE_CREATE_WINDOW_SURFACE:

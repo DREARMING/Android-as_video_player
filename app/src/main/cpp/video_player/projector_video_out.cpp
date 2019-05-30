@@ -4,7 +4,7 @@
 
 #include "projector_video_out.h"
 
-#define LOG_TAG "ProjectorVideoOutput";
+#define LOG_TAG "ProjectorVideoOutput"
 
 ProjectorVideoOutput::ProjectorVideoOutput() {
     renderer = NULL;
@@ -98,7 +98,17 @@ void ProjectorVideoOutput::resetRenderSize(int left, int top, int width, int hei
 }
 
 
-bool ProjectorVideoOutput::renderVideo() {
+bool ProjectorVideoOutput::renderVideo(FrameTexture* texture) {
+    if(!isANativeWindowValid) return false;
+    if(texture != NULL && renderer != NULL){
+        eglCore->makeCurrent(renderTexSurface);
+        renderer->renderToViewWithAutoFill(texture->texId, screenWidth, screenHeight, texture->width, texture->height);
+        if(!eglCore->swapBuffers(renderTexSurface)){
+            LOGE("eglSwapBuffers(renderTexSurface) returned error %d", eglGetError());
+        }
+    }
+    return true;
+
    /* FrameTexture* texture = NULL;
     //去视频帧队列里面获取 FrameTexture，里面会判断时间，如果视频的速度大于音频，则播放返回nul，这样子就不会渲染新的帧画面
     //如果视频的速度慢于音频，则会做跳帧处理
@@ -191,4 +201,18 @@ void ProjectorVideoOutput::destroyEGLContext() {
     eglHasDestroyed = true;
 
     LOGI("leave VideoOutput::destroyEGLContext");
+}
+
+bool ProjectorVideoOutput::createEGLContext(ANativeWindow *window) {
+    LOGI("enter VideoOutput::createEGLContext");
+    eglCore = new EGLCore();
+    LOGI("enter VideoOutput use sharecontext");
+    bool ret = eglCore->initWithSharedContext();
+    if(!ret){
+        LOGI("create EGL Context failed...");
+        return false;
+    }
+    this->createWindowSurface(window);
+    eglCore->doneCurrent();	// must do this before share context in Huawei p6, or will crash
+    return ret;
 }
