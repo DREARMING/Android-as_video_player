@@ -14,25 +14,11 @@
 #include <map>
 #include <string>
 
-enum VideoState {
-	UNINIT, START,PAUSE,STOP,DESTROY
-};
-
-typedef struct {
-	char* url;
-	VideoOutput* videoOutput;
-	AudioOutput* audioOutput;
-	VideoState state;
-
-}SameSourcePlayer;
-
 /**
  * Video Player Controller
  */
 class VideoPlayerController {
 public:
-	static map<string, SameSourcePlayer*> same_source_player_map;	//用来存储非同源 player
-	bool isConsumerPlayer; //标识自己是否是消费者
 	VideoPlayerController();
 	virtual ~VideoPlayerController();
 
@@ -97,8 +83,20 @@ public:
     };
 
 	EGLContext getUploaderEGLContext();
+	bool registerProjectorCallback(ProjectorCallbackImpl* callback);
+	void unRegisterCallback(ProjectorCallbackImpl* callback);
+	void renderTexToProjector(FrameTexture* frameTexture);
+	static VideoPlayerController* getPlayerControlWithUrl(string key);
 
 protected:
+	static std::map<string, VideoPlayerController*> urlMap;
+	//add start...
+	std::list<ProjectorCallbackImpl*> projectorCallbackList;
+	pthread_mutex_t callbackLock;
+	void initProjectorState();
+	void destroyProjectorState();
+	//add end
+
 	ANativeWindow* window;
 	int screenWidth;
 	int screenHeight;

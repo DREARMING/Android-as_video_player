@@ -5,7 +5,7 @@ import android.view.Surface;
 public class ProjectorPlayer {
 
 
-    public native void onSurfaceCreated(final Surface surface);
+    public native void onSurfaceCreated(final Surface surface, int width, int height);
 
     public native void onSurfaceDestroyed(final Surface surface);
 
@@ -16,7 +16,7 @@ public class ProjectorPlayer {
      *            文件路径或者直播地址
      * @return 是否正确初始化
      */
-    public native boolean prepare(String srcFilenameParam, int width, int height, Surface surface);
+    public native boolean prepare(String srcFilenameParam);
 
     /**
      * 暂停播放

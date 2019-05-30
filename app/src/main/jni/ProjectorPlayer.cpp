@@ -21,8 +21,9 @@ jobject) {
 
 
 jboolean
-Java_com_changba_songstudio_video_player_ProjectorPlayer_prepare(JNIEnv *, jobject, jstring, jint,
-                                                                 jint, jobject) {
+Java_com_changba_songstudio_video_player_ProjectorPlayer_prepare(JNIEnv *, jobject obj, jstring url, jint width,
+                                                                 jint height, jobject surface) {
+
     return 0;
 }
 

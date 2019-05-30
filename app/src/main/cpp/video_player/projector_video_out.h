@@ -8,6 +8,8 @@
 #include <android/native_window.h>
 #include "common/egl_core/egl_core.h"
 #include "common/opengl_media/render/video_gl_surface_render.h"
+#include "video_output.h"
+class ProjectorVideoOuputHandler;
 
 class ProjectorVideoOutput {
 
@@ -48,10 +50,67 @@ private:
 
     int screenWidth;
     int screenHeight;
+    pthread_t _threadId;
+    ProjectorVideoOuputHandler* handler;
+    MessageQueue* queue;
+    static void* threadStartCallback(void *myself);
+    void processMessage();
 
     bool surfaceExists;
     bool isANativeWindowValid;
 };
 
+class ProjectorVideoOuputHandler: public Handler {
+private:
+    ProjectorVideoOutput* videoOutput;
+    bool initPlayerResourceFlag;
+
+public:
+    ProjectorVideoOuputHandler(ProjectorVideoOutput* videoOutput, MessageQueue* queue) :
+            Handler(queue) {
+        this->videoOutput = videoOutput;
+        initPlayerResourceFlag = false;
+    }
+    void handleMessage(Message* msg) {
+        int what = msg->getWhat();
+        ANativeWindow* obj;
+        switch (what) {
+            case VIDEO_OUTPUT_MESSAGE_CREATE_EGL_CONTEXT:
+                if (videoOutput->eglHasDestroyed){
+                    break;
+                }
+
+                obj = (ANativeWindow*) (msg->getObj());
+                initPlayerResourceFlag = videoOutput->createEGLContext(obj);
+                break;
+            case VIDEO_OUTPUT_MESSAGE_RENDER_FRAME:
+                if (videoOutput->eglHasDestroyed) {
+                    break;
+                }
+
+                if(initPlayerResourceFlag){
+                    videoOutput->renderVideo();
+                }
+                break;
+            case VIDEO_OUTPUT_MESSAGE_CREATE_WINDOW_SURFACE:
+                if (videoOutput->eglHasDestroyed) {
+                    break;
+                }
+                if(initPlayerResourceFlag){
+                    obj = (ANativeWindow*) (msg->getObj());
+                    videoOutput->createWindowSurface(obj);
+                }
+                break;
+            case VIDEO_OUTPUT_MESSAGE_DESTROY_WINDOW_SURFACE:
+                if(initPlayerResourceFlag){
+                    videoOutput->destroyWindowSurface();
+                }
+                break;
+            case VIDEO_OUTPUT_MESSAGE_DESTROY_EGL_CONTEXT:
+                videoOutput->destroyEGLContext();
+                break;
+        }
+    }
+};
 
 #endif //ANDROID_AS_VIDEO_PLAYER_PROJECTOR_VIDEO_OUT_H

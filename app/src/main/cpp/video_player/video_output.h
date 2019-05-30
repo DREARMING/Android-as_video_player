@@ -11,6 +11,9 @@
 #include "CommonTools.h"
 #include "message_queue/handler.h"
 #include "message_queue/message_queue.h"
+#include <list>
+#include "./video_projector_player_controller.h"
+
 typedef enum {
 	VIDEO_OUTPUT_MESSAGE_CREATE_EGL_CONTEXT,
 	VIDEO_OUTPUT_MESSAGE_CREATE_WINDOW_SURFACE,
@@ -21,6 +24,7 @@ typedef enum {
 
 typedef int (*getTextureCallback)(FrameTexture** texture, void* ctx, bool forceGetFrame);
 typedef int (*onPreDestroyCallback)(void* ctx);
+typedef void (*renderTextureCallback)(FrameTexture* texture);
 
 class VideoOuputHandler;
 
@@ -56,8 +60,11 @@ public:
 
 	bool eglHasDestroyed;
 
+	void setRenderTexCallback(renderTextureCallback callback);
+
 protected:
 private:
+	renderTextureCallback  renderCallback;
 	getTextureCallback produceDataCallback;
 	void* ctx;
 

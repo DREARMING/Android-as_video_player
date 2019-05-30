@@ -65,6 +65,7 @@ bool VideoPlayerController::startAVSynchronizer() {
             ret = false;
         } else{
             isPlaying = true;
+            initProjectorState();
             synchronizer->start();
             LOGI("call audioOutput start...");
             if (NULL != audioOutput) {
@@ -178,6 +179,7 @@ bool VideoPlayerController::init(char *srcFilenameParam, JavaVM *g_jvm, jobject 
     this->obj = obj;
     this->minBufferedDuration = minBufferedDuration;
     this->maxBufferedDuration = maxBufferedDuration;
+
 
     /**
      * 开启了线程去执行 AVSynchronizer 的初始化，然后线程中调用本类的 startAVSynchronizer 函数，
@@ -323,6 +325,7 @@ void VideoPlayerController::destroy() {
     LOGI("enter VideoPlayerController::destroy...");
 
     userCancelled = true;
+    this->destroyProjectorState();
 
     if (synchronizer){
         //中断request
@@ -374,4 +377,65 @@ EGLContext VideoPlayerController::getUploaderEGLContext() {
         return synchronizer->getUploaderEGLContext();
     }
     return NULL;
+}
+
+bool VideoPlayerController::registerProjectorCallback(ProjectorCallbackImpl *callback) {
+    //如果输入源没有在播放，或者已经退出，不允许注册回调。
+    if(!isPlaying || userCancelled) return false;
+    pthread_mutex_lock(&callbackLock);
+    projectorCallbackList.push_back(callback);
+    if(projectorCallbackList.size() == 1){
+        videoOutput->setRenderTexCallback(VideoPlayerController::renderTexToProjector);
+    }
+    pthread_mutex_unlock(&callbackLock);
+    LOGI("register videoPlayerController");
+    return true;
+}
+
+void VideoPlayerController::unRegisterCallback(ProjectorCallbackImpl *callback) {
+    if(!isPlaying || userCancelled)
+        return;
+    LOGI("unregister videoPlayerController");
+    pthread_mutex_lock(&callbackLock);
+    projectorCallbackList.remove(callback);
+    if(projectorCallbackList.size() <= 0){
+        videoOutput->setRenderTexCallback(NULL);
+    }
+    pthread_mutex_unlock(&callbackLock);
+
+}
+
+VideoPlayerController *VideoPlayerController::getPlayerControlWithUrl(string key) {
+    return urlMap[key];
+}
+
+void VideoPlayerController::initProjectorState() {
+
+    //用于锁定 projectorCallbackList
+    pthread_mutex_init(&callbackLock, NULL);
+
+    string key = requestHeader->getURI();
+    urlMap.insert(map<string,VideoPlayerController*>::value_type(key ,this));
+}
+
+void VideoPlayerController::destroyProjectorState() {
+    //移除 url
+    string key = requestHeader->getURI();
+    urlMap.erase(key);
+    LOGI("remove url : %s", key);
+    //清空所有回调
+    projectorCallbackList.clear();
+    projectorCallbackList = NULL;
+    //销毁锁
+    pthread_mutex_destroy(&callbackLock);
+}
+
+void VideoPlayerController::renderTexToProjector(FrameTexture *frameTexture) {
+    pthread_mutex_lock(&callbackLock);
+    LOGI("render texture to projector");
+    list<ProjectorCallbackImpl*>::iterator iterator;
+    for(iterator = projectorCallbackList.begin(); iterator!= projectorCallbackList.end(); iterator++){
+        (*iterator)->onRenderTexture(frameTexture);
+    }
+    pthread_mutex_unlock(&callbackLock);
 }

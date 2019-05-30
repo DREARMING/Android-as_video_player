@@ -26,7 +26,6 @@ bool VideoOutput::initOutput(ANativeWindow* window, int screenWidth, int screenH
 	this->produceDataCallback = produceDataCallback;
 	this->screenWidth = screenWidth;
 	this->screenHeight = screenHeight;
-
 	if(NULL != window){
 		isANativeWindowValid = true;
 	}
@@ -136,6 +135,10 @@ bool VideoOutput::renderVideo() {
 		if (!eglCore->swapBuffers(renderTexSurface)) {
 			LOGE("eglSwapBuffers(renderTexSurface) returned error %d", eglGetError());
 		}
+		//给 Projector 传递纹理
+		if(renderCallback != NULL){
+			renderCallback(texture);
+		}
 	}
 	if(forceGetFrame){
 		forceGetFrame = false;
@@ -209,4 +212,8 @@ void VideoOutput::destroyEGLContext() {
 	eglHasDestroyed = true;
 
 	LOGI("leave VideoOutput::destroyEGLContext");
+}
+
+void VideoOutput::setRenderTexCallback(renderTextureCallback callback) {
+	this->renderCallback = callback;
 }

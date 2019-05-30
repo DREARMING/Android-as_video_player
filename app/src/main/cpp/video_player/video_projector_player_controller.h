@@ -8,6 +8,7 @@
 #include <EGL/egl.h>
 #include "./common/circle_texture_queue.h"
 #include "./common/CommonTools.h"
+#include "./projector_video_out.h"
 
 class VideoProjector;
 
@@ -21,8 +22,10 @@ public:
 class ProjectorCallbackImpl : ProjectorCallback{
 public:
     void setParent(VideoProjector* projector);
+    bool equal(ProjectorCallbackImpl* other);
     void onRenderTexture(FrameTexture* frameTexture);
     void onAudioDataAvailable(byte* data, size_t bufferSize);
+    VideoProjector* getParent(){ return projector;}
 private:
     VideoProjector* projector;
 };
@@ -32,23 +35,29 @@ class VideoProjector{
 public:
     VideoProjector();
      virtual ~VideoProjector();
-     void init(char* url);
+     void init();
      void onSurfaceCreate(ANativeWindow* window, int width, int height);
      void onSurfaceDestroy();
      void pause();
      void stop();
      void play();
+     void prepare(char* url);
      void onRenderTexture(FrameTexture* frameTexture);
      void onAudioDataAvailable(byte* data, int bufferSize);
+     void registerProjectorListener();
+     void unRegisterProjectorListener();
 
 private:
+    bool isPlaying;
     int state;
     int screenWidth;
     int screenHeight;
     char* videoPath;
-    bool userCancel;
+    bool userCancelled;
     ANativeWindow* window;
     ProjectorCallbackImpl* projectorCallback;
+
+    ProjectorVideoOutput* videoOutput;
     void initVideoOutput(ANativeWindow* window);
     void initAudioOutput();
 };
