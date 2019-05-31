@@ -137,7 +137,7 @@ bool VideoOutput::renderVideo() {
 		}
 		//给 Projector 传递纹理
 		if(renderCallback != NULL){
-			renderCallback(texture);
+			renderCallback(texture, ctx);
 		}
 	}
 	if(forceGetFrame){

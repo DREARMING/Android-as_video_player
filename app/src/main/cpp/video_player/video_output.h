@@ -11,7 +11,6 @@
 #include "CommonTools.h"
 #include "message_queue/handler.h"
 #include "message_queue/message_queue.h"
-#include <list>
 #include "./video_projector_player_controller.h"
 
 typedef enum {
@@ -24,7 +23,7 @@ typedef enum {
 
 typedef int (*getTextureCallback)(FrameTexture** texture, void* ctx, bool forceGetFrame);
 typedef int (*onPreDestroyCallback)(void* ctx);
-typedef void (*renderTextureCallback)(FrameTexture* texture);
+typedef void (*renderTextureCallback)(FrameTexture* texture, void* ctx);
 
 class VideoOuputHandler;
 

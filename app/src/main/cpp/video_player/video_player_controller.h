@@ -86,6 +86,7 @@ public:
 	bool registerProjectorCallback(ProjectorCallbackImpl* callback);
 	void unRegisterCallback(ProjectorCallbackImpl* callback);
 	void renderTexToProjector(FrameTexture* frameTexture);
+	static void renderTexCallback(FrameTexture* frameTexture, void* ctx);
 	static VideoPlayerController* getPlayerControlWithUrl(string key);
 
 protected:

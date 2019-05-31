@@ -3,6 +3,8 @@
 #define LOG_TAG "VideoPlayerController"
 
 
+std::map<string, VideoPlayerController*> VideoPlayerController::urlMap;
+
 /*
  * class VideoPlayerController
  *
@@ -385,7 +387,7 @@ bool VideoPlayerController::registerProjectorCallback(ProjectorCallbackImpl *cal
     pthread_mutex_lock(&callbackLock);
     projectorCallbackList.push_back(callback);
     if(projectorCallbackList.size() == 1){
-        videoOutput->setRenderTexCallback(this->renderTexToProjector);
+        videoOutput->setRenderTexCallback(VideoPlayerController::renderTexCallback);
     }
     pthread_mutex_unlock(&callbackLock);
     LOGI("register videoPlayerController");
@@ -437,4 +439,9 @@ void VideoPlayerController::renderTexToProjector(FrameTexture *frameTexture) {
         (*iterator)->onRenderTexture(frameTexture);
     }
     pthread_mutex_unlock(&callbackLock);
+}
+
+void VideoPlayerController::renderTexCallback(FrameTexture *frameTexture, void *ctx) {
+    VideoPlayerController* controller = static_cast<VideoPlayerController *>(ctx);
+    controller->renderTexToProjector(frameTexture);
 }

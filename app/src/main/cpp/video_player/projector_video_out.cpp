@@ -34,7 +34,7 @@ bool ProjectorVideoOutput::initOutput(ANativeWindow *window, int screenWidth, in
     queue = new MessageQueue("video output message queue");
     handler = new ProjectorVideoOuputHandler(this, queue);
 
-    handler->postMessage(new Message(VIDEO_OUTPUT_MESSAGE_CREATE_EGL_CONTEXT, window));
+    handler->postMessage(new Message(P_VIDEO_OUTPUT_MESSAGE_CREATE_EGL_CONTEXT, window));
     pthread_create(&_threadId, 0, threadStartCallback, this);
 }
 
@@ -64,7 +64,7 @@ void ProjectorVideoOutput::onSurfaceCreated(ANativeWindow* window) {
     LOGI("enter VideoOutput::onSurfaceCreated");
     if (handler) {
         isANativeWindowValid = true;
-        handler->postMessage(new Message(VIDEO_OUTPUT_MESSAGE_CREATE_WINDOW_SURFACE, window));
+        handler->postMessage(new Message(P_VIDEO_OUTPUT_MESSAGE_CREATE_WINDOW_SURFACE, window));
        // handler->postMessage(new Message(VIDEO_OUTPUT_MESSAGE_RENDER_FRAME));
     }
 }
@@ -139,7 +139,7 @@ void ProjectorVideoOutput::onSurfaceDestroyed() {
     LOGI("enter VideoOutput::onSurfaceDestroyed");
     isANativeWindowValid = false;
     if (handler){
-        handler->postMessage(new Message(VIDEO_OUTPUT_MESSAGE_DESTROY_WINDOW_SURFACE));
+        handler->postMessage(new Message(P_VIDEO_OUTPUT_MESSAGE_DESTROY_WINDOW_SURFACE));
     }
 }
 void ProjectorVideoOutput::destroyWindowSurface() {
@@ -170,7 +170,7 @@ void ProjectorVideoOutput::stopOutput() {
     LOGI("enter VideoOutput::stopOutput");
     if (handler) {
         handler->postMessage(
-                new Message(VIDEO_OUTPUT_MESSAGE_DESTROY_EGL_CONTEXT));
+                new Message(P_VIDEO_OUTPUT_MESSAGE_DESTROY_EGL_CONTEXT));
         handler->postMessage(new Message(MESSAGE_QUEUE_LOOP_QUIT_FLAG));
         pthread_join(_threadId, 0);
         if (queue) {

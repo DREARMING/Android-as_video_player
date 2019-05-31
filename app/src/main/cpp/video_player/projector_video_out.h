@@ -8,16 +8,18 @@
 #include <android/native_window.h>
 #include "common/egl_core/egl_core.h"
 #include "common/opengl_media/render/video_gl_surface_render.h"
-#include "video_output.h"
+#include "CommonTools.h"
+#include "message_queue/handler.h"
+#include "message_queue/message_queue.h"
+#include "./common/circle_texture_queue.h"
 
-/*typedef enum {
-    VIDEO_OUTPUT_MESSAGE_CREATE_EGL_CONTEXT,
-    VIDEO_OUTPUT_MESSAGE_CREATE_WINDOW_SURFACE,
-    VIDEO_OUTPUT_MESSAGE_DESTROY_WINDOW_SURFACE,
-    VIDEO_OUTPUT_MESSAGE_DESTROY_EGL_CONTEXT,
-    VIDEO_OUTPUT_MESSAGE_RENDER_FRAME
-} VideoOutputMSGType;*/
-
+typedef enum {
+    P_VIDEO_OUTPUT_MESSAGE_CREATE_EGL_CONTEXT,
+    P_VIDEO_OUTPUT_MESSAGE_CREATE_WINDOW_SURFACE,
+    P_VIDEO_OUTPUT_MESSAGE_DESTROY_WINDOW_SURFACE,
+    P_VIDEO_OUTPUT_MESSAGE_DESTROY_EGL_CONTEXT,
+    P_VIDEO_OUTPUT_MESSAGE_RENDER_FRAME
+} ProjectorVideoOutputMSGType;
 
 class ProjectorVideoOuputHandler;
 
@@ -74,14 +76,6 @@ class ProjectorVideoOuputHandler: public Handler {
 private:
     ProjectorVideoOutput* videoOutput;
     bool initPlayerResourceFlag;
-    typedef enum {
-        VIDEO_OUTPUT_MESSAGE_CREATE_EGL_CONTEXT,
-        VIDEO_OUTPUT_MESSAGE_CREATE_WINDOW_SURFACE,
-        VIDEO_OUTPUT_MESSAGE_DESTROY_WINDOW_SURFACE,
-        VIDEO_OUTPUT_MESSAGE_DESTROY_EGL_CONTEXT,
-        VIDEO_OUTPUT_MESSAGE_RENDER_FRAME
-    } VideoOutputMSGType;
-
 public:
     ProjectorVideoOuputHandler(ProjectorVideoOutput* videoOutput, MessageQueue* queue) :
             Handler(queue) {
@@ -92,7 +86,7 @@ public:
         int what = msg->getWhat();
         ANativeWindow* obj;
         switch (what) {
-            case VIDEO_OUTPUT_MESSAGE_CREATE_EGL_CONTEXT:
+            case P_VIDEO_OUTPUT_MESSAGE_CREATE_EGL_CONTEXT:
                 if (videoOutput->eglHasDestroyed){
                     break;
                 }
@@ -100,7 +94,7 @@ public:
                 obj = (ANativeWindow*) (msg->getObj());
                 initPlayerResourceFlag = videoOutput->createEGLContext(obj);
                 break;
-            case VIDEO_OUTPUT_MESSAGE_RENDER_FRAME:
+            case P_VIDEO_OUTPUT_MESSAGE_RENDER_FRAME:
                 if (videoOutput->eglHasDestroyed) {
                     break;
                 }
@@ -109,7 +103,7 @@ public:
                     videoOutput->renderVideo(static_cast<FrameTexture *>(msg->getObj()));
                 }
                 break;
-            case VIDEO_OUTPUT_MESSAGE_CREATE_WINDOW_SURFACE:
+            case P_VIDEO_OUTPUT_MESSAGE_CREATE_WINDOW_SURFACE:
                 if (videoOutput->eglHasDestroyed) {
                     break;
                 }
@@ -118,12 +112,12 @@ public:
                     videoOutput->createWindowSurface(obj);
                 }
                 break;
-            case VIDEO_OUTPUT_MESSAGE_DESTROY_WINDOW_SURFACE:
+            case P_VIDEO_OUTPUT_MESSAGE_DESTROY_WINDOW_SURFACE:
                 if(initPlayerResourceFlag){
                     videoOutput->destroyWindowSurface();
                 }
                 break;
-            case VIDEO_OUTPUT_MESSAGE_DESTROY_EGL_CONTEXT:
+            case P_VIDEO_OUTPUT_MESSAGE_DESTROY_EGL_CONTEXT:
                 videoOutput->destroyEGLContext();
                 break;
         }

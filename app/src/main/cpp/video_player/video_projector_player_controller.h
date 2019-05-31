@@ -8,6 +8,7 @@
 #include <EGL/egl.h>
 #include "./common/circle_texture_queue.h"
 #include "./common/CommonTools.h"
+
 #include "./projector_video_out.h"
 
 class VideoProjector;

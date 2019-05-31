@@ -56,7 +56,7 @@ void VideoProjector::init() {
 void VideoProjector::onRenderTexture(FrameTexture *frameTexture) {
     //记得要判断状态 - 暂停、停止
     if(isPlaying && videoOutput){
-        videoOutput->renderVideo();
+        videoOutput->renderVideo(frameTexture);
     }
 }
 
@@ -163,7 +163,7 @@ void VideoProjector::registerProjectorListener() {
         LOGI("find a video controller, can projection!! register callback now");
         controller->registerProjectorCallback(projectorCallback);
     }else{
-        LOGI("this url %s doesn't have playing source...", url);
+        LOGI("this url %s doesn't have playing source...", url.c_str());
     }
 }
 
@@ -174,7 +174,7 @@ void VideoProjector::unRegisterProjectorListener() {
         LOGI("find a video controller, unregister callback now");
         controller->unRegisterCallback(projectorCallback);
     }else{
-        LOGI("this url %s doesn't have playing source...may be remove from screen...", url);
+        LOGI("this url %s doesn't have playing source...may be remove from screen...", url.c_str());
     }
 }
 
