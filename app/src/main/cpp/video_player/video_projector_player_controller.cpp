@@ -130,7 +130,7 @@ void VideoProjector::initAudioOutput() {
 void VideoProjector::prepare(char *url) {
     int len = strlen(url);
     //如果上一个画面在播放，清除上一个注册的videoUrl
-    if(videoPath){
+    if(videoPath != NULL){
         unRegisterProjectorListener();
         delete videoPath;
         videoPath = NULL;
@@ -170,7 +170,7 @@ void VideoProjector::registerProjectorListener() {
 void VideoProjector::unRegisterProjectorListener() {
     string url = videoPath;
     VideoPlayerController* controller = VideoPlayerController::getPlayerControlWithUrl(url);
-    if(controller){
+    if(controller != NULL){
         LOGI("find a video controller, unregister callback now");
         controller->unRegisterCallback(projectorCallback);
     }else{

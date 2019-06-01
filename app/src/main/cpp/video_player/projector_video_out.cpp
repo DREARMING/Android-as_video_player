@@ -23,7 +23,7 @@ ProjectorVideoOutput::~ProjectorVideoOutput() {
 
 }
 
-bool ProjectorVideoOutput::initOutput(ANativeWindow *window, int screenWidth, int screenHeight) {
+void ProjectorVideoOutput::initOutput(ANativeWindow *window, int screenWidth, int screenHeight) {
     LOGI("VideoOutput::initOutput");
     this->screenWidth = screenWidth;
     this->screenHeight = screenHeight;

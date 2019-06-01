@@ -29,7 +29,7 @@ public:
     ProjectorVideoOutput();
     virtual ~ProjectorVideoOutput();
     /** 初始化Output **/
-    bool initOutput(ANativeWindow* window, int screenWidth, int screenHeight);
+    void initOutput(ANativeWindow* window, int screenWidth, int screenHeight);
     /** 重置视频绘制区域的大小 **/
     void resetRenderSize(int left, int top, int width, int height);
     /** 当surface创建的时候的调用 **/

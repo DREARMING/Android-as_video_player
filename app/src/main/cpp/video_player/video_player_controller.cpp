@@ -2,8 +2,7 @@
 
 #define LOG_TAG "VideoPlayerController"
 
-
-std::map<string, VideoPlayerController*> VideoPlayerController::urlMap;
+std::map<string, VideoPlayerController*> VideoPlayerController::urlMap = {};
 
 /*
  * class VideoPlayerController
@@ -442,6 +441,9 @@ void VideoPlayerController::renderTexToProjector(FrameTexture *frameTexture) {
 }
 
 void VideoPlayerController::renderTexCallback(FrameTexture *frameTexture, void *ctx) {
-    VideoPlayerController* controller = static_cast<VideoPlayerController *>(ctx);
-    controller->renderTexToProjector(frameTexture);
+    LOGI("renderTexCallback -- enter");
+    VideoPlayerController* controller = (VideoPlayerController *)ctx;
+    if(controller != NULL)
+        controller->renderTexToProjector(frameTexture);
+    LOGI("renderTexCallback -- exist");
 }

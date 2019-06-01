@@ -136,7 +136,7 @@ bool VideoOutput::renderVideo() {
 			LOGE("eglSwapBuffers(renderTexSurface) returned error %d", eglGetError());
 		}
 		//给 Projector 传递纹理
-		if(renderCallback != NULL){
+		if(renderCallback != NULL && ctx != NULL){
 			renderCallback(texture, ctx);
 		}
 	}

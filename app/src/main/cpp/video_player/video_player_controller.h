@@ -13,6 +13,7 @@
 #include "egl_core/egl_share_context.h"
 #include <map>
 #include <string>
+#include "./video_projector_player_controller.h"
 
 /**
  * Video Player Controller
