@@ -71,22 +71,56 @@
 
     <SurfaceView
         android:id="@+id/projector_surface_view"
-        android:layout_width="match_parent"
+        android:layout_width="320dp"
         android:layout_marginTop="10dp"
-        android:layout_height="200dp" />
+        android:layout_height="180dp" />
 
-    <Button
-        android:id="@+id/btPlay"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="play"
-        />
+        android:orientation="horizontal"
+        >
 
-    <Button
-        android:id="@+id/btPause"
-        android:layout_width="wrap_content"
+        <Button
+            android:id="@+id/btPlay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="play"
+            />
+
+        <Button
+            android:id="@+id/btPause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="pause"
+            />
+    </LinearLayout>
+
+    <SurfaceView
+        android:id="@+id/projector_surface_view2"
+        android:layout_width="320dp"
+        android:layout_marginTop="10dp"
+        android:layout_height="180dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="pause"
-        />
+        android:orientation="horizontal"
+        >
+
+        <Button
+            android:id="@+id/btPlay1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="play"
+            />
+
+        <Button
+            android:id="@+id/btPause1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="pause"
+            />
+    </LinearLayout>
 
 </LinearLayout>

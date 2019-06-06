@@ -1,10 +1,10 @@
 package com.changba.songstudio.video.player;
 
-import com.changba.songstudio.video.decoder.MediaCodecDecoderLifeCycle;
-import com.changba.songstudio.video.player.OnInitializedCallback.OnInitialStatus;
-
 import android.util.Log;
 import android.view.Surface;
+
+import com.changba.songstudio.video.decoder.MediaCodecDecoderLifeCycle;
+import com.changba.songstudio.video.player.OnInitializedCallback.OnInitialStatus;
 
 public class ChangbaPlayer extends MediaCodecDecoderLifeCycle {
 
@@ -34,7 +34,7 @@ public class ChangbaPlayer extends MediaCodecDecoderLifeCycle {
 	}
 
 
-	public native void onSurfaceCreated(final Surface surface);
+	public native void onSurfaceCreated(final Surface surface, int width, int height);
 
 	public native void onSurfaceDestroyed(final Surface surface);
 

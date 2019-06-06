@@ -153,6 +153,9 @@ void VideoProjector::stop() {
 }
 
 void VideoProjector::play() {
+    if(!registerCallback){
+        registerProjectorListener();
+    }
     this->isPlaying = true;
 }
 
@@ -162,7 +165,9 @@ void VideoProjector::registerProjectorListener() {
     if(controller){
         LOGI("find a video controller, can projection!! register callback now");
         controller->registerProjectorCallback(projectorCallback);
+        registerCallback = true;
     }else{
+        this->registerCallback = false;
         LOGI("this url %s doesn't have playing source...", url.c_str());
     }
 }

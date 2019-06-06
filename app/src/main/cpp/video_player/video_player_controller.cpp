@@ -21,7 +21,6 @@ VideoPlayerController::VideoPlayerController() {
 
 VideoPlayerController::~VideoPlayerController() {
     LOGI("~VideoPlayerController");
-
     videoOutput = NULL;
     audioOutput = NULL;
     synchronizer = NULL;
@@ -45,6 +44,7 @@ void  VideoPlayerController::initVideoOutput(ANativeWindow* window){
         return;
     }
     videoOutput = new VideoOutput();
+    videoOutput->setRenderTexCallback(renderTexCallback);
     videoOutput->initOutput(window, screenWidth, screenHeight,videoCallbackGetTex, this);
 }
 
@@ -385,9 +385,9 @@ bool VideoPlayerController::registerProjectorCallback(ProjectorCallbackImpl *cal
     if(!isPlaying || userCancelled) return false;
     pthread_mutex_lock(&callbackLock);
     projectorCallbackList.push_back(callback);
-    if(projectorCallbackList.size() == 1){
+    /*if(projectorCallbackList.size() == 1){
         videoOutput->setRenderTexCallback(VideoPlayerController::renderTexCallback);
-    }
+    }*/
     pthread_mutex_unlock(&callbackLock);
     LOGI("register videoPlayerController");
     return true;
@@ -399,15 +399,22 @@ void VideoPlayerController::unRegisterCallback(ProjectorCallbackImpl *callback) 
     LOGI("unregister videoPlayerController");
     pthread_mutex_lock(&callbackLock);
     projectorCallbackList.remove(callback);
-    if(projectorCallbackList.size() <= 0){
+    /*if(projectorCallbackList.size() <= 0){
         videoOutput->setRenderTexCallback(NULL);
-    }
+    }*/
     pthread_mutex_unlock(&callbackLock);
 
 }
 
 VideoPlayerController *VideoPlayerController::getPlayerControlWithUrl(string key) {
-    return urlMap[key];
+    map<string, VideoPlayerController*>::iterator iter;
+    iter = urlMap.find(key);
+    if(iter == urlMap.end()){
+        LOGI("query control with url : %s  null", key.c_str());
+        return NULL;
+    }
+    LOGI("key : %s, controller : %i", key.c_str(), iter->second == NULL?0:1);
+    return iter->second;
 }
 
 void VideoPlayerController::initProjectorState() {
@@ -416,7 +423,9 @@ void VideoPlayerController::initProjectorState() {
     pthread_mutex_init(&callbackLock, NULL);
 
     string key = requestHeader->getURI();
-    urlMap.insert(map<string,VideoPlayerController*>::value_type(key ,this));
+    LOGI("insert url to urlMap : %s", key.c_str());
+    urlMap.insert(pair<string,VideoPlayerController*>(key ,this));
+
 }
 
 void VideoPlayerController::destroyProjectorState() {
@@ -431,6 +440,7 @@ void VideoPlayerController::destroyProjectorState() {
 }
 
 void VideoPlayerController::renderTexToProjector(FrameTexture *frameTexture) {
+    if(projectorCallbackList.size() <= 0) return;
     pthread_mutex_lock(&callbackLock);
     LOGI("render texture to projector");
     list<ProjectorCallbackImpl*>::iterator iterator;
@@ -441,9 +451,9 @@ void VideoPlayerController::renderTexToProjector(FrameTexture *frameTexture) {
 }
 
 void VideoPlayerController::renderTexCallback(FrameTexture *frameTexture, void *ctx) {
-    LOGI("renderTexCallback -- enter");
+    //LOGI("renderTexCallback -- enter");
     VideoPlayerController* controller = (VideoPlayerController *)ctx;
     if(controller != NULL)
         controller->renderTexToProjector(frameTexture);
-    LOGI("renderTexCallback -- exist");
+   // LOGI("renderTexCallback -- exist");
 }

@@ -11,7 +11,7 @@ extern "C" {
 /* for test */
 JNIEXPORT jint JNICALL Java_com_changba_songstudio_video_player_ChangbaPlayer_getdemuxedbuffer(JNIEnv *,jobject, jbyteArray);
 
-JNIEXPORT void JNICALL Java_com_changba_songstudio_video_player_ChangbaPlayer_onSurfaceCreated(JNIEnv * env, jobject obj, jobject surface);
+JNIEXPORT void JNICALL Java_com_changba_songstudio_video_player_ChangbaPlayer_onSurfaceCreated(JNIEnv * env, jobject obj, jobject surface, jint width, jint height);
 
 JNIEXPORT void JNICALL Java_com_changba_songstudio_video_player_ChangbaPlayer_onSurfaceDestroyed(JNIEnv * env, jobject obj, jobject surface);
 /*

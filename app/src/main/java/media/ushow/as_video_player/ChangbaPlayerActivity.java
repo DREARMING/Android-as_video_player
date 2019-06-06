@@ -42,10 +42,18 @@ public class ChangbaPlayerActivity extends Activity implements OnSeekBarChangeLi
 	private Button btPlay;
 	private Button btPause;
 
+	private SurfaceView projectorSurfaceView2;
+	private Button btPlay2;
+	private Button btPause2;
+
+	String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/test.mp4";
+	//String path = "rtmp://192.168.1.121/live/test1";
+
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_surfaceview_player);
 		initView();
+		//initView2();
 		playerSeekBar = (SeekBar) findViewById(R.id.music_seek_bar);
 		playerSeekBar.setOnSeekBarChangeListener(this);
 		surfaceView = (SurfaceView) findViewById(R.id.gl_surface_view);
@@ -82,6 +90,7 @@ public class ChangbaPlayerActivity extends Activity implements OnSeekBarChangeLi
 	}
 
 	private ProjectorPlayer projectorPlayer;
+	private ProjectorPlayer projectorPlayer2;
 
 	private void initView() {
 		btPause = findViewById(R.id.btPause);
@@ -89,8 +98,9 @@ public class ChangbaPlayerActivity extends Activity implements OnSeekBarChangeLi
 		btPlay.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if(projectorPlayer != null)
+				if(projectorPlayer != null) {
 					projectorPlayer.play();
+				}
 			}
 		});
 		btPause.setOnClickListener(new OnClickListener() {
@@ -108,11 +118,13 @@ public class ChangbaPlayerActivity extends Activity implements OnSeekBarChangeLi
 			public void surfaceCreated(SurfaceHolder holder) {
 				if(projectorPlayer == null){
 					projectorPlayer = new ProjectorPlayer();
-					String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/test.mp4";
-					projectorPlayer.prepare(path);
 					int width = projectorSurfaceView.getWidth();
 					int height = projectorSurfaceView.getHeight();
 					projectorPlayer.onSurfaceCreated(holder.getSurface(), width, height);
+					//String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/test.mp4";
+					//String path = "rtmp://192.168.1.121/live/test1";
+					projectorPlayer.prepare(path);
+
 				}
 			}
 
@@ -123,7 +135,61 @@ public class ChangbaPlayerActivity extends Activity implements OnSeekBarChangeLi
 
 			@Override
 			public void surfaceDestroyed(SurfaceHolder holder) {
+				if(projectorPlayer!=null){
+					projectorPlayer.stop();
+					projectorPlayer.onSurfaceDestroyed(holder.getSurface());
+				}
+			}
+		});
+	}
 
+	private void initView2() {
+		btPause2 = findViewById(R.id.btPause1);
+		btPlay2 = findViewById(R.id.btPlay1);
+		btPlay2.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if(projectorPlayer2 != null) {
+					projectorPlayer2.play();
+				}
+			}
+		});
+		btPause2.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if(projectorPlayer2 != null){
+					projectorPlayer2.pause();
+				}
+			}
+		});
+		projectorSurfaceView2 = findViewById(R.id.projector_surface_view2);
+		SurfaceHolder surfaceHolder = projectorSurfaceView2.getHolder();
+		surfaceHolder.addCallback(new SurfaceHolder.Callback(){
+			@Override
+			public void surfaceCreated(SurfaceHolder holder) {
+				if(projectorPlayer2 == null){
+					projectorPlayer2 = new ProjectorPlayer();
+					int width = projectorSurfaceView2.getWidth();
+					int height = projectorSurfaceView2.getHeight();
+					projectorPlayer2.onSurfaceCreated(holder.getSurface(), width, height);
+					//String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/test.mp4";
+					//String path = "rtmp://192.168.1.121/live/test1";
+					projectorPlayer2.prepare(path);
+
+				}
+			}
+
+			@Override
+			public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+			}
+
+			@Override
+			public void surfaceDestroyed(SurfaceHolder holder) {
+				if(projectorPlayer2!=null){
+					projectorPlayer2.stop();
+					projectorPlayer2.onSurfaceDestroyed(holder.getSurface());
+				}
 			}
 		});
 	}
@@ -272,8 +338,6 @@ public class ChangbaPlayerActivity extends Activity implements OnSeekBarChangeLi
 				};
 				playerController.setUseMediaCodec(false);
 				int width = getWindowManager().getDefaultDisplay().getWidth();
-				String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/test.mp4";
-				//String path = "rtmp://192.168.2.128/live/test1";
 				//String path = "/mnt/sdcard/a_songstudio/huahua.flv";
 				playerController.init(path, holder.getSurface(), width, width, new OnInitializedCallback() {
 					public void onInitialized(OnInitialStatus onInitialStatus) {
@@ -286,7 +350,7 @@ public class ChangbaPlayerActivity extends Activity implements OnSeekBarChangeLi
 			}
 
 			else {
-				playerController.onSurfaceCreated(holder.getSurface());
+				playerController.onSurfaceCreated(holder.getSurface(), surfaceView.getWidth(), surfaceView.getHeight());
 			}
 		}
 

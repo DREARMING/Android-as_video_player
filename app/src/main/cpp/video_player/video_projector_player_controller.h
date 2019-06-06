@@ -49,6 +49,7 @@ public:
      void unRegisterProjectorListener();
 
 private:
+    bool registerCallback;
     bool isPlaying;
     int state;
     int screenWidth;

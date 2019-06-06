@@ -57,9 +57,9 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
 
-clean.doFirst {
+/*clean.doFirst {
     delete "${projectDir}/.externalNativeBuild"
-}
+}*/
 
 /** 判断是否为Windows操作系统 */
 boolean isWindowsOS(){

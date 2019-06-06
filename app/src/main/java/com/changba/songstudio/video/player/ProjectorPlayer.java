@@ -4,6 +4,7 @@ import android.view.Surface;
 
 public class ProjectorPlayer {
 
+    private long nativeObjPointer = -1L;
 
     public native void onSurfaceCreated(final Surface surface, int width, int height);
 
@@ -30,5 +31,13 @@ public class ProjectorPlayer {
 
 
     public native void stop();
+
+    public void setNativeObjPointer(long nativePointer){
+        this.nativeObjPointer = nativePointer;
+    }
+
+    public long getNativeObjPointer(){
+        return nativeObjPointer;
+    }
 
 }
